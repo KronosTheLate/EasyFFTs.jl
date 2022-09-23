@@ -1,0 +1,13 @@
+name = "EasyFFTs"
+uuid = "08be435b-48e7-4090-a646-9e3615ae1968"
+authors = ["KronosTheLate"]
+version = "0.1.0"
+
+[compat]
+julia = "1.6"
+
+[extras]
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+
+[targets]
+test = ["Test"]
