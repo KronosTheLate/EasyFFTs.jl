@@ -44,21 +44,46 @@ end
 
 
 """
+    easymirror(v::AbstractVector)
+    easymirror(s::NamedTuple)
 
+Given a one-sided spectrum, return a two-sided version 
+by "mirroring" about 0. This convenience function also 
+ajusts the amplitude of `v`, or the amplitudes of `s.resp`
+apropriatly.
 """
 function easymirror end
 export easymirror
 
 
 function easymirror(input::AbstractVector)
-
+    mirrored = fftshift(vcat(input, reverse(s[begin+1:end])))
+    mirrored ./= 2
+    mirrored[end÷2+1] *= 2
 end
 
 function easymirror(input::NamedTuple)
+    has_expected_keys = haskey(nt, :freq) && haskey(nt, :resp)
+    if !has_expected_keys
+        error("""
+            Expected input to have keys `freq` and `resp`.
+            The input has keys $(keys(input))
+        """)
+    end
 
+    # If all freqiencies are non-negative, mirroring is appropriate.
+    # If else, I am not sure.
+    if input.resp.n != input.resp.n_nonnegative
+        @warn "Based on the `freq` field of the input, it does not look 
+        like it should be mirrored. Proceed at your own risk."
+    end
+    N = length(input.freq)
+
+    # Constructing frequencies manually to avoid allocations
+    freq = FFTW.Frequencies(N, N - 1, input.freq.multiplier)
+    resp = easymirror(input.resp)
+
+    return (; freq, resp)
 end
-
-#! define easymirror, remember to halv response.
-#! define for AbstractVector, Frequencies and named tuple with keys "freq" and "resp".
 
 end #module
