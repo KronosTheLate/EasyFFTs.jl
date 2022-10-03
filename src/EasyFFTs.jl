@@ -143,6 +143,12 @@ julia> easymirror(fill(1, 4))   # Not halving the zero frequency component
  0.5
  0.5
  0.5
+
+
+julia> nt = (freq=[0, 0.2, 0.4], resp=[1, 2, 3]);
+
+julia> easymirror(nt)
+(freq = [0.4, 0.2, 0.0, 0.2, 0.4], resp = [1.5, 1.0, 1.0, 1.0, 1.5])
 ```
 """
 function easymirror end
