@@ -5,6 +5,19 @@
 [![Build Status](https://github.com/KronosTheLate/EasyFFTs.jl/actions/workflows/CI.yml/badge.svg?branch=main)](https://github.com/KronosTheLate/EasyFFTs.jl/actions/workflows/CI.yml?query=branch%3Amain)
 [![Coverage](https://codecov.io/gh/KronosTheLate/EasyFFTs.jl/branch/main/graph/badge.svg)](https://codecov.io/gh/KronosTheLate/EasyFFTs.jl)
 
+##
+The main workhorse of this package is a very simple function `easyfft`, that modifies the output of `fft` and `rfft` from [FFTW.jl](https://github.com/JuliaMath/FFTW.jl) slightly.  
+
+This function offers four main benefits to using the FFTW functions directly:
+- The output is scaled by default, making the absolute value of the response 
+correspond directly to the amplitude of the sinusoids that make up the signal.
+- Simple and short syntax for getting the associated frequencies
+- Freqiencies and response are sorted by increasing frequency
+- `rfft` is automatically called for real element vectors, avoiding 
+the common newbie mistake of always using `fft`. Benefits are faster computation 
+and automtically discarding half of the symmetric spectrum. If you want both 
+sides of the spectrum
+
 ## Introductary example
 Input:
 ```

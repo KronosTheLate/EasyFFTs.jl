@@ -24,15 +24,7 @@ freqiencues and response respectivly.
 The optional function `f` allows the user to pass `abs` or `angle` 
 to get only the amplitude or phase of the response directly.
 
-This function offers four main benefits to using the FFTW functions directly:
-- The output is scaled by default, making the absolute value of the response 
-correspond directly to the amplitude of the sinusoids that make up the signal.
-- Simple and short syntax for getting the associated frequencies
-- Freqiencies and response are sorted by increasing frequency
-- `rfft` is automatically called for real element vectors, avoiding 
-the common newbie mistake of always using `fft`. Benefits are faster computation 
-and automtically discarding half of the symmetric spectrum. If you want both 
-sides of the spectrum, see [`easymirror`](@ref).
+See also [`easymirror`](@ref) to get a symestric spectrum.
 
 # Examples
 ```jldoctest
