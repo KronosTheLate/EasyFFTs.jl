@@ -35,55 +35,56 @@ function easyfft end
 export easyfft
 
 function easyfft(s::AbstractVector; scalebylength=true, f::Function=identity)
-    response = FFTW.fft(s)
+    resp = FFTW.fft(s)
     if scalebylength
-        response ./= length(response)
+        resp ./= length(resp)
     end
-    response = FFTW.fftshift(response)
-    if f == identity
-        return response
-    else
-        return f.(response)
+
+    resp = FFTW.fftshift(resp)
+
+    if f != identity
+        resp = f.(resp)
     end
+    return resp
 end
 function easyfft(s::AbstractVector, fs::Real; scalebylength=true, f::Function=identity)
-    response = FFTW.fft(s)
+    resp = FFTW.fft(s)
     if scalebylength
-        response ./= length(response)
+        resp ./= length(resp)
     end
-    if f == identity
-        return response
-    else
-        return f.(response)
+
+    if f != identity
+        resp = f.(resp)
     end
+
     freq = FFTW.fftshift(FFTW.fftfreq(length(s), fs))
-    resp = FFTW.fftshift(response)
+    resp = FFTW.fftshift(resp)
     return (; freq, resp)
 end
 
 function easyfft(s::AbstractVector{<:Real}; scalebylength=true, f::Function=identity)
-    response = FFTW.rfft(s)
+    resp = FFTW.rfft(s)
     if scalebylength
-        response ./= length(response)
+        resp ./= length(resp)
     end
-    if f == identity
-        return response
-    else
-        return f.(response)
+
+    if f != identity
+        resp = f.(resp)
     end
+
+    return resp
 end
 function easyfft(s::AbstractVector{<:Real}, fs::Real; scalebylength=true, f::Function=identity)
-    response = FFTW.rfft(s)
+    resp = FFTW.rfft(s)
     if scalebylength
-        response ./= length(response)
+        resp ./= length(resp)
     end
-    if f == identity
-        return response
-    else
-        return f.(response)
+
+    if f != identity
+        resp = f.(resp)
     end
+
     freq = FFTW.rfftfreq(length(s), fs)
-    resp = response
     return (; freq, resp)
 end
 
