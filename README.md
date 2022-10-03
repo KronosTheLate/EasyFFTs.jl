@@ -6,7 +6,7 @@
 [![Coverage](https://codecov.io/gh/KronosTheLate/EasyFFTs.jl/branch/main/graph/badge.svg)](https://codecov.io/gh/KronosTheLate/EasyFFTs.jl)
 
 ##
-The main workhorse of this package is a very simple function `easyfft`, that modifies the output of `fft` and `rfft` from [FFTW.jl](https://github.com/JuliaMath/FFTW.jl) slightly.  
+The main workhorse of this package is a very simple function `easyfft` that modifies the output of `fft` and `rfft` from [FFTW.jl](https://github.com/JuliaMath/FFTW.jl) slightly.  
 
 This function offers four main benefits to using the FFTW functions directly:
 - The output is scaled by default, making the absolute value of the response 
