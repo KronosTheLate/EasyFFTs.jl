@@ -21,8 +21,8 @@ let
 
     plt1 = scatterplot(timestamps, s)
 
-    s_fft = easyfft(s, fs)
-    plt2 = scatterplot(s_fft.freq, s_fft.resp .|> abs)
+    s_fft = easyfft(s, fs, f=abs)
+    plt2 = scatterplot(s_fft.freq, s_fft.resp)
     display(plt1)
     display(plt2)
 end
