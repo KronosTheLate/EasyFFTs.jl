@@ -8,7 +8,9 @@ Doctstring goes here
 """
 function easyfft end
 export easyfft
-
+#! FFTSHIFT if doublesided
+#! define easymirror, remember to halv response.
+#! define for abstractarray, Frequencies and named tuple with keys "freq" and "resp".
 function easyfft(s::AbstractArray; scalebylength=true)
     response = FFTW.fft(s)
     if scalebylength
