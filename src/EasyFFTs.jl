@@ -56,7 +56,9 @@ function easyfft(s::AbstractVector, fs::Real; scalebylength=true, f::Function=id
     else
         return f.(response)
     end
-    return (freqs=FFTW.fftshift(FFTW.fftfreq(length(s), fs)), resp=FFTW.fftshift(response))
+    freq = FFTW.fftshift(FFTW.fftfreq(length(s), fs))
+    resp = FFTW.fftshift(response)
+    return (; freq, resp)
 end
 
 function easyfft(s::AbstractVector{<:Real}; scalebylength=true, f::Function=identity)
@@ -80,7 +82,9 @@ function easyfft(s::AbstractVector{<:Real}, fs::Real; scalebylength=true, f::Fun
     else
         return f.(response)
     end
-    return (freqs=FFTW.rfftfreq(length(s), fs), resp=response)
+    freq = FFTW.rfftfreq(length(s), fs)
+    resp = response
+    return (; freq, resp)
 end
 
 """
