@@ -16,14 +16,14 @@ function easyfft(s::AbstractArray; scalebylength=true)
     if scalebylength
         response ./= length(response)
     end
-    return response
+    return FFTW.fftshift(response)
 end
 function easyfft(s::AbstractArray, fs::Real; scalebylength=true)
     response = FFTW.fft(s)
     if scalebylength
         response ./= length(response)
     end
-    return (freqs=FFTW.fftfreq(length(s), fs), resp=response)
+    return (freqs=FFTW.fftshift(FFTW.fftfreq(length(s), fs)), resp=FFTW.fftshift(response))
 end
 
 function easyfft(s::AbstractArray{<:Real}; scalebylength=true)
