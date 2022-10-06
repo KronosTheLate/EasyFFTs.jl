@@ -18,7 +18,7 @@ the common newbie mistake of always using `fft`. Benefits are faster computation
 and automtically discarding half of the symmetric spectrum. If you want both 
 sides of the spectrum, see the only other exported function `easymirror`.
 
-## Introductary example
+## Introductory example
 Input:
 ```
 using EasyFFTs
