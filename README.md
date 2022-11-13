@@ -58,7 +58,7 @@ only the positive-frequency part of the spectrum is calculated for real signals 
 resolution when plotting, as you do not use half the space on repeating the signal, and also saves computations.
 
 When the sample frequency is passed as the second argument, you get a named tuple with the frequencies and response:
-```
+```julia
 julia> s_fft = easyfft(s, fs);
 
 julia> typeof(s_fft)
