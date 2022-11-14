@@ -4,7 +4,7 @@ module EasyFFTs
 import FFTW
 using RecipesBase
 
-import Base: iterate
+import Base: iterate, getindex, firstindex, lastindex, length
 
 """
     easyfft(s)
@@ -59,63 +59,39 @@ struct EasyFFT
     resp::Vector{Complex{Float64}}
 end
 
-function easyfft(s::AbstractVector; scalebylength=true, f::Function=identity)
+function easyfft(s::AbstractVector, fs::Real=1.0; scalebylength=true, f::Function=identity)
     resp = FFTW.fft(s)
     if scalebylength
         resp ./= length(resp)
     end
 
-    resp = FFTW.fftshift(resp)
-
-    if f != identity
-        resp = f.(resp)
-    end
-    return resp
-end
-function easyfft(s::AbstractVector, fs::Real; scalebylength=true, f::Function=identity)
-    resp = FFTW.fft(s)
-    if scalebylength
-        resp ./= length(resp)
-    end
-
-    if f != identity
-        resp = f.(resp)
-    end
+    resp = f.(resp)
 
     freq = FFTW.fftshift(FFTW.fftfreq(length(s), fs))
     resp = FFTW.fftshift(resp)
     return EasyFFT(freq, resp)
 end
 
-function easyfft(s::AbstractVector{<:Real}; scalebylength=true, f::Function=identity)
+function easyfft(s::AbstractVector{<:Real}, fs::Real=1.0; scalebylength=true, f::Function=identity)
     resp = FFTW.rfft(s)
     if scalebylength
         resp ./= length(resp)
     end
 
-    if f != identity
-        resp = f.(resp)
-    end
-
-    return resp
-end
-function easyfft(s::AbstractVector{<:Real}, fs::Real; scalebylength=true, f::Function=identity)
-    resp = FFTW.rfft(s)
-    if scalebylength
-        resp ./= length(resp)
-    end
-
-    if f != identity
-        resp = f.(resp)
-    end
+    resp = f.(resp)
 
     freq = FFTW.rfftfreq(length(s), fs)
     return EasyFFT(freq, resp)
 end
 
+Base.getindex(fft::EasyFFT, i) = getindex(fft.resp, i)
+firstindex(fft::EasyFFT) = firstindex(fft.resp)
+lastindex(fft::EasyFFT) = lastindex(fft.resp)
+length(fft::EasyFFT) = length(fft.resp)
+
 """
     easymirror(v::AbstractVector)
-    easymirror(s::NamedTuple)
+    easymirror(s::EasyFFT)
 
 Given a one-sided spectrum, return a two-sided version
 by "mirroring" about 0. This convenience function also
@@ -145,9 +121,9 @@ julia> easymirror(fill(1, 4))   # Not halving the zero frequency component
  0.5
 
 
-julia> nt = (freq=[0, 0.2, 0.4], resp=[1, 2, 3]);
+julia> fft = (freq=[0, 0.2, 0.4], resp=[1, 2, 3]);
 
-julia> easymirror(nt)
+julia> easymirror(fft)
 (freq = [0.4, 0.2, 0.0, 0.2, 0.4], resp = [1.5, 1.0, 1.0, 1.0, 1.5])
 ```
 """
@@ -160,15 +136,7 @@ function easymirror(s::AbstractVector)
     return mirrored
 end
 
-function easymirror(input::NamedTuple)
-    has_expected_keys = haskey(input, :freq) && haskey(input, :resp)
-    if !has_expected_keys
-        error("""
-            Expected input to have keys `freq` and `resp`.
-            The input has keys $(keys(input))
-        """)
-    end
-
+function easymirror(input::EasyFFT)
     freq = FFTW.fftshift(vcat(input.freq, reverse(input.freq[begin+1:end]) .* 1))
     resp = easymirror(input.resp)
 
