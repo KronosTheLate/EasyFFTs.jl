@@ -57,12 +57,36 @@ julia> easyfft(s)[1:5]
 only the positive-frequency part of the spectrum is calculated for real signals by default. This gives a better visual 
 resolution when plotting, as you do not use half the space on repeating the signal, and also saves computations.
 
-When the sample frequency is passed as the second argument, you get a named tuple with the frequencies and response:
+When the sample frequency is passed as the second argument, the resulting
+`EasyFFT` object will contain a meaningful frequency vector
 ```julia
-julia> s_fft = easyfft(s, fs);
+julia> s_fft = easyfft(s, fs)
+EasyFFT with 51 samples, showing dominant frequencies f = [9.900990099009901, 4.9504950495049505]
+```
+Note that it correctly identifies the peaks at (nearly) ``10`` and ``5 Hz`` when
+`show`ing. We can also inspect it closer with
+```julia
+using Plots
+plot(s_fft)
+```
+![Visualization of FFT](assets/s_fft.png)
 
-julia> typeof(s_fft)
-NamedTuple{(:freq, :resp), Tuple{AbstractFFTs.Frequencies{Float64}, Vector{ComplexF64}}}
+The absolute value and phase of the response can be extracted with
+`response(s_fft)` and `phase(s_fft)` respectively:
+```julia
+julia> response(s_fft)
+51-element Vector{Float64}:
+ 9.578394722256253e-17
+ 0.01370506607530957
+ 0.03001024771597054
+ ...
+
+julia> phase(s_fft)
+51-element Vector{Float64}:
+  3.141592653589793
+ -1.5396914490365032
+ -1.5085865712783
+ ...
 ```
 
 You can directly destructure named tuples into variables if preferred:
@@ -99,79 +123,8 @@ julia> s_freq[inds_sorted_by_magnitude] .=> abs.(s_resp)[inds_sorted_by_magnitud
 ```
 
 Note that the 9.9 Hz corresponds to a 2.88 amplitude. If the discrete 
-frequencies lined up perfectly with the actual signal, we would get amplitude 3 at 10 Hz.
-This is almost the case at 5 Hz.
+frequencies lined up perfectly with the actual signal, we would get amplitude 3
+at 10 Hz. This is almost the case at 5 Hz.
 
-You can also supply a keyword argument `f` to pass a function that you 
-want to apply directly to the response. This can be useful if the phase is 
-not of interest, and you do not want the extra lines or variables to 
-extract the response after calculating the `easyfft`:
-```julia
-julia> easyfft(s, fs, f=abs).resp == abs.(s_resp)
-true
-```
-That wraps up the basic usage. And that is all the usage there is, as this is a simple package.
-
-## Simple plotting
-If you are more visual, here is a little plot, essentially showing the same things. Input:
-```julia
-using EasyFFTs
-using UnicodePlots
-let
-    fs = 1000
-    duration = 1
-    timestamps = range(0, duration, step=1 / fs)
-
-    f = 5
-    A = 2
-    s = @. A * sin(f * 2π * timestamps)
-
-    plt1 = scatterplot(timestamps, s; xlabel="t", ylabel="s(t)", border=:dotted)
-
-    s_fft = easyfft(s, fs, f=abs)
-    plt2 = scatterplot(s_fft.freq, s_fft.resp; xlabel="frequencies", ylabel="amplitude", border=:dotted)
-    display(plt1)
-    display(plt2)
-end
-```
-Output:
-```julia
-           ⡤⠤⠤⠤⠤⠤⠤⠤⠤⠤⠤⠤⠤⠤⠤⠤⠤⠤⠤⠤⠤⠤⠤⠤⠤⠤⠤⠤⠤⠤⠤⠤⠤⠤⠤⠤⠤⠤⠤⠤⠤⢤ 
-         2 ⡇⠀⡼⢧⠀⠀⠀⠀⠀⠀⡼⢧⠀⠀⠀⠀⠀⠀⡼⢧⠀⠀⠀⠀⠀⠀⡼⢧⠀⠀⠀⠀⠀⠀⡼⢧⠀⠀⠀⠀⠀⢸ 
-           ⡇⠀⡇⢸⠀⠀⠀⠀⠀⠀⡇⢸⠀⠀⠀⠀⠀⠀⡇⢸⠀⠀⠀⠀⠀⠀⡇⢸⠀⠀⠀⠀⠀⠀⡇⢸⠀⠀⠀⠀⠀⢸ 
-           ⡇⢰⠁⠈⡇⠀⠀⠀⠀⢰⠁⠈⡇⠀⠀⠀⠀⢰⠁⠈⡇⠀⠀⠀⠀⢰⠁⠈⡇⠀⠀⠀⠀⢰⠁⠈⡇⠀⠀⠀⠀⢸ 
-           ⡇⢸⠀⠀⡇⠀⠀⠀⠀⢸⠀⠀⡇⠀⠀⠀⠀⢸⠀⠀⡇⠀⠀⠀⠀⢸⠀⠀⡇⠀⠀⠀⠀⢸⠀⠀⡇⠀⠀⠀⠀⢸ 
-           ⡇⡼⠀⠀⢧⠀⠀⠀⠀⡼⠀⠀⢧⠀⠀⠀⠀⡼⠀⠀⢧⠀⠀⠀⠀⡼⠀⠀⢧⠀⠀⠀⠀⡼⠀⠀⢧⠀⠀⠀⠀⢸ 
-           ⡇⡇⠀⠀⢸⠀⠀⠀⠀⡇⠀⠀⢸⠀⠀⠀⠀⡇⠀⠀⢸⠀⠀⠀⠀⡇⠀⠀⢸⠀⠀⠀⠀⡇⠀⠀⢸⠀⠀⠀⠀⢸ 
-           ⡇⡇⠀⠀⢸⠀⠀⠀⠀⡇⠀⠀⢸⠀⠀⠀⠀⡇⠀⠀⢸⠀⠀⠀⠀⡇⠀⠀⢸⠀⠀⠀⠀⡇⠀⠀⢸⠀⠀⠀⠀⢸ 
-   s(t)    ⡇⠧⠤⠤⠼⡦⠤⠤⢤⠧⠤⠤⠼⡦⠤⠤⢤⠧⠤⠤⠼⡦⠤⠤⢤⠧⠤⠤⠼⡦⠤⠤⢤⠧⠤⠤⠼⡦⠤⠤⢤⢸ 
-           ⡇⠀⠀⠀⠀⡇⠀⠀⢸⠀⠀⠀⠀⡇⠀⠀⢸⠀⠀⠀⠀⡇⠀⠀⢸⠀⠀⠀⠀⡇⠀⠀⢸⠀⠀⠀⠀⡇⠀⠀⢸⢸ 
-           ⡇⠀⠀⠀⠀⡇⠀⠀⢸⠀⠀⠀⠀⡇⠀⠀⢸⠀⠀⠀⠀⡇⠀⠀⢸⠀⠀⠀⠀⡇⠀⠀⢸⠀⠀⠀⠀⡇⠀⠀⢸⢸ 
-           ⡇⠀⠀⠀⠀⢳⠀⠀⡞⠀⠀⠀⠀⢳⠀⠀⡞⠀⠀⠀⠀⢳⠀⠀⡞⠀⠀⠀⠀⢳⠀⠀⡞⠀⠀⠀⠀⢳⠀⠀⡞⢸ 
-           ⡇⠀⠀⠀⠀⢸⠀⠀⡇⠀⠀⠀⠀⢸⠀⠀⡇⠀⠀⠀⠀⢸⠀⠀⡇⠀⠀⠀⠀⢸⠀⠀⡇⠀⠀⠀⠀⢸⠀⠀⡇⢸ 
-           ⡇⠀⠀⠀⠀⠸⡀⢀⡇⠀⠀⠀⠀⠸⡀⢀⡇⠀⠀⠀⠀⠸⡀⢀⡇⠀⠀⠀⠀⠸⡀⢀⡇⠀⠀⠀⠀⠸⡀⢀⡇⢸ 
-           ⡇⠀⠀⠀⠀⠀⡇⢸⠀⠀⠀⠀⠀⠀⡇⢸⠀⠀⠀⠀⠀⠀⡇⢸⠀⠀⠀⠀⠀⠀⡇⢸⠀⠀⠀⠀⠀⠀⡇⢸⠀⢸ 
-        -2 ⡇⠀⠀⠀⠀⠀⢳⡞⠀⠀⠀⠀⠀⠀⢳⡞⠀⠀⠀⠀⠀⠀⢳⡞⠀⠀⠀⠀⠀⠀⢳⡞⠀⠀⠀⠀⠀⠀⢳⡞⠀⢸ 
-           ⠓⠒⠒⠒⠒⠒⠒⠒⠒⠒⠒⠒⠒⠒⠒⠒⠒⠒⠒⠒⠒⠒⠒⠒⠒⠒⠒⠒⠒⠒⠒⠒⠒⠒⠒⠒⠒⠒⠒⠒⠒⠚ 
-           ⠀0⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀1⠀ 
-           ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀t⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀ 
-               ⡤⠤⠤⠤⠤⠤⠤⠤⠤⠤⠤⠤⠤⠤⠤⠤⠤⠤⠤⠤⠤⠤⠤⠤⠤⠤⠤⠤⠤⠤⠤⠤⠤⠤⠤⠤⠤⠤⠤⠤⠤⢤ 
-             2 ⡇⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢸ 
-               ⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢸ 
-               ⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢸ 
-               ⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢸ 
-               ⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢸ 
-               ⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢸ 
-               ⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢸ 
-   amplitude   ⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢸ 
-               ⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢸ 
-               ⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢸ 
-               ⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢸ 
-               ⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢸ 
-               ⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢸ 
-               ⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢸ 
-             0 ⡇⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⢸ 
-               ⠓⠒⠒⠒⠒⠒⠒⠒⠒⠒⠒⠒⠒⠒⠒⠒⠒⠒⠒⠒⠒⠒⠒⠒⠒⠒⠒⠒⠒⠒⠒⠒⠒⠒⠒⠒⠒⠒⠒⠒⠒⠚ 
-               ⠀0⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀500⠀ 
-               ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀frequencies⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀ 
-```
+That wraps up the basic usage. And that is all the usage there is, as this is a
+simple package.
