@@ -122,9 +122,19 @@ julia> s_freq[inds_sorted_by_magnitude] .=> abs.(s_resp)[inds_sorted_by_magnitud
  11.881188118811881 => 0.18856450061284216
 ```
 
-Note that the 9.9 Hz corresponds to a 2.88 amplitude. If the discrete 
-frequencies lined up perfectly with the actual signal, we would get amplitude 3
-at 10 Hz. This is almost the case at 5 Hz.
+Note that the 9.9 Hz corresponds to a 2.88 magnitude. If the discrete 
+frequencies lined up perfectly with the actual frequencies, we would get the actual
+magnitude of 3 at 10 Hz. This is almost the case at 5 Hz.
+
+You can also supply a keyword argument `f` to pass a function that you 
+want to apply directly to the response. This can be useful if the phase is 
+not of interest, and you do not want the extra lines or variables to 
+extract the response after calculating the `easyfft`:
+```julia
+julia> easyfft(s, fs, f=abs).resp == abs.(s_resp)
+true
+```
+That wraps up the basic usage. And that is all the usage there is, as this is a simple package.
 
 That wraps up the basic usage. And that is all the usage there is, as this is a
 simple package.
