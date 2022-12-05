@@ -13,7 +13,6 @@ import Base: iterate, getindex, firstindex, lastindex, length, show
 
 # Keyword arguments
 - `scalebylength::Bool`: determines if the response is scaled by its length. Defaults to `true`.
-- `f::Function`: an optional function to apply elementwise to the response.
 
 Compute the Discrete Fourier Transform (DFT) of the
 input vector `s`, scaling by `length(s)` by default.
@@ -135,20 +134,20 @@ function easymirror(input::EasyFFT)
 end
 
 """
-    response(ef::EasyFFT)
+    magnitude(ef::EasyFFT)
 
 The absolute values of the response vector.
 
 See also: [`phase`](@ref)
 """
-response(ef::EasyFFT) = abs.(ef.resp)
-export response
+magnitude(ef::EasyFFT) = abs.(ef.resp)
+export magnitude
 """
     phase(ef::EasyFFT)
 
 The phase of the response vector.
 
-See also: [`response`](@ref)
+See also: [`magnitude`](@ref)
 """
 phase(ef::EasyFFT) = angle.(ef.resp)
 export phase
@@ -161,11 +160,13 @@ Base.iterate(ef::EasyFFT, i=1) = iterate((;freq=ef.freq, resp=ef.resp), i)
 @recipe function f(ef::EasyFFT)
     layout := (2, 1)
     link := :x
+    seriestype --> :stem
+    markershape --> :circle
     @series begin
-        yguide := "Response"
+        yguide := "Magnitude"
         subplot := 1
         label := nothing
-        ef.freq, response(ef)
+        ef.freq, magnitude(ef)
     end
     @series begin
         xguide := "Frequency"
@@ -184,7 +185,7 @@ end
 """
     dominantfrequencies(ef, n=5, t=0.1, window=length(ef)//50)
 
-Find the `n` or fewer dominant frequencies in `ef`, such that the corresponding response is
+Find the `n` or fewer dominant frequencies in `ef`, such that the corresponding magnitude is
 larger than `t` times the maximum, and at least `window` indices away from any larger peaks.
 """
 function dominantfrequencies(ef::EasyFFT, n=5, t=0.1, window=length(ef)//50)
