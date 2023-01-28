@@ -12,12 +12,13 @@ This function offers four main benefits to using the FFTW functions directly:
 - The output is scaled by default, making the absolute value of the response 
 correspond directly to the amplitude of the sinusoids that make up the signal.
 - Simple and short syntax for getting the associated frequencies
-- Frequencies and response are sorted by increasing frequency (if you have ever used fftshift you know what I am talking about)
-- `rfft` is automatically called for real element vectors, avoiding 
-the common newbie mistake of always using `fft`. Benefits are faster computation 
+- Frequencies and response are sorted by increasing frequency (if you have ever used `fftshift` you know what I am talking about)
+- `rfft` is automatically called for real input signals, avoiding 
+the common mistake of always using `fft`. Benefits are faster computation* 
 and automatically discarding half of the symmetric spectrum. If you want both 
 sides of the spectrum, see the only other exported function `easymirror`.
 
+*Note that because `fft` is more optimized than `rfft`, the actual computational time may vary.
 ## Introductory examples
 First, we need something to analyze:
 ```julia
