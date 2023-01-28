@@ -157,11 +157,15 @@ export phase
 Base.iterate(ef::EasyFFT, i=1) = iterate((;freq=ef.freq, resp=ef.resp), i)
 
 # Plot recipe - so plot(easyfft(y, f)) does the right thing
-@recipe function f(ef::EasyFFT)
+@recipe function f(ef::EasyFFTs.EasyFFT)
     layout := (2, 1)
     link := :x
-    seriestype --> :stem
-    markershape --> :circle
+    if length(ef.freq) ≥ 100
+        nothing # because stem plots are heavy/slow when having many points
+    else
+        seriestype --> :stem
+        markershape --> :circle
+    end
     @series begin
         yguide := "Magnitude"
         subplot := 1
