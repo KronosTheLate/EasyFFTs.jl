@@ -14,22 +14,27 @@ correspond directly to the amplitude of the sinusoids that make up the signal.
 - Simple and short syntax for getting the associated frequencies
 - Frequencies and response are sorted by increasing frequency (if you have ever used `fftshift` you know what I am talking about)
 - `rfft` is automatically called for real input signals, avoiding 
-the common mistake of always using `fft`. Benefits are faster computation* 
-and automatically discarding half of the symmetric spectrum. If you want both 
-sides of the spectrum, see the only other exported function `easymirror`.
+the common mistake of always using `fft`. This makes it so that half of the symmetric 
+spectrum is not computed, and not returned. This reduces computation and allocations, without loss of information. 
+If you want both sides of the spectrum, use `easymirror`, with usage demonstrated in the docstring.
 
-*Note that because `fft` is more optimized than `rfft`, the actual computational time may vary.
-## Introductory examples
-First, we need something to analyze:
+# Examples
+It is much easier to explain by example, so let's show some examples of how to use this package.
+
+## Setup
+First, we need something to analyze. Let's define some sample-timestamps:
 ```julia
 julia> using EasyFFTs
 
-julia> fs = 100;
+julia> fs = 100;  # sampling frequency
 
-julia> duration = 1;
+julia> duration = 1;  # signal period
 
-julia> timestamps = range(0, duration, step=1 / fs);
+julia> timestamps = range(0, duration, step = 1 / fs);
+```
 
+We then make a signal `s` composed of 2 pure sinusoids with frequencies of 5 Hz and 10 Hz, sampled at `timestamps`:
+```julia
 julia> f1 = 5;
 
 julia> A1 = 2;
@@ -37,74 +42,93 @@ julia> A1 = 2;
 julia> f2 = 10;
 
 julia> A2 = 3;
-```
 
-We then make a signal consisting of 2 pure sinusoids:
-```julia
 julia> s = @. A1 * sin(f1 * 2π * timestamps) + A2 * sin(f2 * 2π * timestamps);
 ```
 
-`easyfft` acts much like a normal `fft`
+Lets new use `easyfft`, and bind the output to `ef`:
 ```julia
-julia> easyfft(s)[1:5]
-5-element Vector{ComplexF64}:
- -9.578394722256253e-17 + 0.0im
- 0.00042622566734221867 - 0.013698436692159435im
-   0.001865726219729817 - 0.029952195806767286im
-   0.005060926454320235 - 0.05407756747203356im
-   0.013611028457149094 - 0.10883117827942629im
-```
-, but the input is scaled by the length of the signal (to get the right magnitudes), and 
-only the positive-frequency part of the spectrum is calculated for real signals by default. This gives a better visual 
-resolution when plotting, as you do not use half the space on repeating the signal, and also saves computations.
-
-When the sample frequency is passed as the second argument, the resulting
-`EasyFFT` object will contain a meaningful frequency vector
-```julia
-julia> s_fft = easyfft(s, fs)
+julia>  ef = easyfft(s, fs)
 EasyFFT with 51 samples, showing dominant frequencies f = [9.900990099009901, 4.9504950495049505]
 ```
-Note that it correctly identifies the peaks at (nearly) ``10`` and ``5 Hz`` when
-`show`ing. We can also inspect it closer with
+And just like that, we have have the frequency response! The best part is that the amplitudes and frequencies correspond directly to the sines 
+that make up the signal, no preprocessing needed. Note that the sampling frequency `fs` defaults to `1`, giving a [Nyquist frequency](https://en.wikipedia.org/wiki/Nyquist_frequency) of `0.5`.
+
+Now let's get into a little more detail about this `EasyFFT` object that is returned by `easyfft`.
+
+## The `EasyFFT` type
+`ef` is of the type `EasyFFT`. The reason for wrapping the output in a custom type (unlike `FFTW.fft`) 
+is mainly that it allows automatic plotting of the output. A secondary benefit is that custom show methods can be defined, 
+which is what allows the easily interpretable output seen above.
+
+The type `EasyFFT` has two properties:
+```julia
+julia> propertynames(ef)
+(:freq, :resp)
+```
+
+This means that one can access the frequencies and response of `ef` as if it was a named tuple:
+```julia
+ julia> ef.freq
+51-element Vector{Float64}:
+  0.0
+  0.9900990099009901
+  ⋮
+ 48.51485148514851
+ 49.504950495049506
+```
+
+```julia
+ julia> ef.resp
+51-element Vector{ComplexF64}:
+ -9.578394722256253e-17 + 0.0im
+ 0.00042622566734221867 - 0.013698436692159435im
+                        ⋮
+  -0.025328817492520122 + 0.0011826329422999651im
+   -0.02532460367843232 + 0.00039389110927144075im
+```
+
+You can index `ef` to index the response directly:
+```julia
+julia>  ef[1:10] == ef.resp[1:10]
+true
+```
+
+Convenience functions are defined to extract the magnitude and phase of the response:
+```julia
+julia> magnitude(ef) == abs.(ef.resp)
+true
+
+julia> phase(ef) == angle.(ef.resp)
+true
+```
+
+Finally, the frequencies and response can be iterated. This allows [destructuring by iteration](https://docs.julialang.org/en/v1/manual/functions/#destructuring-assignment), if you prefer separating the frequencies and response:
+```julia
+julia> frequencies, response = easyfft(s, fs);
+
+julia> frequencies == ef.freq
+true
+
+julia> response == ef.resp
+true
+```
+
+## Plotting
+Because the returned value is of a custom type, automatic plot recipes can be defined. This has beed done for [Plots.jl](https://github.com/JuliaPlots/Plots.jl):
 ```julia
 using Plots
-plot(s_fft)
+plot(ef)
 ```
-![Visualization of FFT](assets/s_fft.png)
+![Visualization of FFT](assets/s_fft.png)  
+For less than 100 datapoints, the plot default to a stem plot, which is the most appropriate for showing discrete quantities. 
+However, stem plots get messy and slow with too many points, which is why the default changes to a line plot if there 
+are 100 datapoints or more.
 
-The absolute value and phase of the response can be extracted with
-`response(s_fft)` and `phase(s_fft)` respectively:
+In the final demonstration, let's get the indices of 5 largest amplitude components, using `partialsortperm` from Julia Base:
 ```julia
-julia> response(s_fft)
-51-element Vector{Float64}:
- 9.578394722256253e-17
- 0.01370506607530957
- 0.03001024771597054
- ...
-
-julia> phase(s_fft)
-51-element Vector{Float64}:
-  3.141592653589793
- -1.5396914490365032
- -1.5085865712783
- ...
-```
-
-You can directly destructure named tuples into variables if preferred:
-```julia
-julia> s_freq, s_resp = easyfft(s, fs); 
-
-julia> s_freq == s_fft.freq
-true
-
-julia> s_resp == s_fft.resp
-true
-```
-
-For demonstration, lets get the indices of 5 highest amplitude components:
-```julia
-julia> inds_sorted_by_magnitude = sortperm(abs.(s_resp), rev=true)[1:5]
-5-element Vector{Int64}:
+julia> inds_sorted_by_magnitude = partialsortperm(magnitude(ef), 1:5, rev=true)
+5-element view(::Vector{Int64}, 1:5) with eltype Int64:
  11
   6
  12
@@ -114,7 +138,7 @@ julia> inds_sorted_by_magnitude = sortperm(abs.(s_resp), rev=true)[1:5]
 
 We can then visualize the result as frequency => magnitude pairs:
 ```julia
-julia> s_freq[inds_sorted_by_magnitude] .=> abs.(s_resp)[inds_sorted_by_magnitude]
+julia> ef.freq[inds_sorted_by_magnitude] .=> magnitude(ef)[inds_sorted_by_magnitude]
 5-element Vector{Pair{Float64, Float64}}:
   9.900990099009901 => 2.8796413948481443
  4.9504950495049505 => 1.9997385273893282
@@ -125,17 +149,8 @@ julia> s_freq[inds_sorted_by_magnitude] .=> abs.(s_resp)[inds_sorted_by_magnitud
 
 Note that the 9.9 Hz corresponds to a 2.88 magnitude. If the discrete 
 frequencies lined up perfectly with the actual frequencies, we would get the actual
-magnitude of 3 at 10 Hz. This is almost the case at 5 Hz.
+magnitude of 3 at 10 Hz. This is almost the case at 5 Hz, where the discrete frequency of 4.95 
+lines up almost perfectly with the frequency of the second sinusoid.
 
-You can also supply a keyword argument `f` to pass a function that you 
-want to apply directly to the response. This can be useful if the phase is 
-not of interest, and you do not want the extra lines or variables to 
-extract the response after calculating the `easyfft`:
-```julia
-julia> easyfft(s, fs, f=abs).resp == abs.(s_resp)
-true
-```
-That wraps up the basic usage. And that is all the usage there is, as this is a simple package.
-
-That wraps up the basic usage. And that is all the usage there is, as this is a
-simple package.
+That wraps up the basic usage, and there really is not much more to it. 
+Check out the docstrings and/or source code for more detail.
