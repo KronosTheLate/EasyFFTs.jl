@@ -53,6 +53,15 @@ struct EasyFFT
     resp::Vector{Complex{Float64}}
 end
 
+length(ef::EasyFFT) = length(ef.resp)
+Base.getindex(ef::EasyFFT, i) = getindex((ef.freq, ef.resp), i)
+firstindex(ef::EasyFFT) = 1
+lastindex(ef::EasyFFT) = 2
+
+# Allow (f, r) = easyfft(...)
+Base.iterate(ef::EasyFFT, i=1) = iterate((;freq=ef.freq, resp=ef.resp), i)
+
+
 function easyfft(s::AbstractVector, fs::Real=1.0; scalebylength=true)
     resp = FFTW.fft(s)
     if scalebylength
@@ -73,11 +82,6 @@ function easyfft(s::AbstractVector{<:Real}, fs::Real=1.0; scalebylength=true)
     freq = FFTW.rfftfreq(length(s), fs)
     return EasyFFT(freq, resp)
 end
-
-Base.getindex(ef::EasyFFT, i) = getindex(ef.resp, i)
-firstindex(ef::EasyFFT) = firstindex(ef.resp)
-lastindex(ef::EasyFFT) = lastindex(ef.resp)
-length(ef::EasyFFT) = length(ef.resp)
 
 """
     easymirror(v::AbstractVector)
@@ -151,10 +155,6 @@ See also: [`magnitude`](@ref)
 """
 phase(ef::EasyFFT) = angle.(ef.resp)
 export phase
-
-
-# Allow (f, r) = easyfft(...)
-Base.iterate(ef::EasyFFT, i=1) = iterate((;freq=ef.freq, resp=ef.resp), i)
 
 # Plot recipe - so plot(easyfft(y, f)) does the right thing
 @recipe function f(ef::EasyFFTs.EasyFFT)
