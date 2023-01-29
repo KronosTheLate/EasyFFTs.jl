@@ -22,6 +22,11 @@ ef[2]
 ef[begin]
 a, b = ef
 
+fs = 100;  # 100 samples per second
+timestamps = range(0, 1, step = 1/fs);
+s = sin.(2pi * 2 * timestamps); # sine of frequency = 2 Hz
+easyfft(s, fs)
+
 ##
 using Plots
 

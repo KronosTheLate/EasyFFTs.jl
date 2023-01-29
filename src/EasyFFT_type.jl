@@ -1,5 +1,5 @@
 import Base: iterate, getindex, firstindex, lastindex, length, show
-
+using Term
 """
     EasyFFT(frequencies, response)
 
@@ -22,8 +22,12 @@ lastindex(ef::EasyFFT) = 2
 Base.iterate(ef::EasyFFT, i=1) = iterate((;freq=ef.freq, resp=ef.resp), i)
 
 function show(io::IO, ef::EasyFFT)
-    dominant = dominantfrequencies(ef)
-    print(io, "EasyFFT with $(length(ef)) samples, showing dominant frequencies f = $(dominant)")
+    dominant_frequency_indices = finddomfreq(ef)
+    table = Table(
+        hcat(round.(ef.freq[dominant_frequency_indices], sigdigits=5), round.(abs.(ef.resp[dominant_frequency_indices]), sigdigits=5)), 
+        header=["Frequency", "Magnitude"]
+    )
+    print(io, "EasyFFT with ", length(ef), " samples. Dominant component(s):", table)
 end
 
 

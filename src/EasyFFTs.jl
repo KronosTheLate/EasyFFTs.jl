@@ -12,37 +12,33 @@ include("plotting.jl")
 
 
 Compute the Discrete Fourier Transform (DFT) of the
-input vector `s`, scaling by `length(s)` by default.
+input vector `s`, scaling by `1/length(s)` by default.
 This function uses FFTW.rfft if `s` has real elements,
 and FFTW.fft otherwise.
 
-The output is an EasyFFT object, with fields `freq` and `resp` containing the frequences and
+The output is an `EasyFFT` object, with fields `freq` and `resp` containing the frequences and
 response respectivly.
 
 # Keyword arguments
 - `scalebylength::Bool`: determines if the response is scaled by its length. Defaults to `true`.
 
-See also [`easymirror`](@ref) to get a symestric spectrum.
+See also [`easymirror`](@ref) to get the full symmetric spectrum of real signals.
 
 # Examples
 ```jldoctest
 julia> using EasyFFTs
 
-julia> s = sin.(1:5);
+julia> fs = 100;  # 100 samples per second
 
-julia> ef = easyfft(s)
-EasyFFT with 3 samples, showing dominant frequencies f = [0.2, 0.4]
+julia> timestamps = range(0, 1, step = 1/fs);
 
-julia> ef.resp
-3-element Vector{ComplexF64}:
-  0.0587205499074596 + 0.0im
-   0.441411013590527 - 0.76819000942203im
- 0.23045453212899036 - 0.08137937206396029im
+julia> s = sin.(2π * 2 * timestamps); # sine of frequency = 2 Hz
 
+julia> easyfft(s, fs)
+EasyFFT with 51 samples, showing dominant frequencies f = [1.9801980198019802]
 
-julia> ef = easyfft(s, 0.5)
-EasyFFT with 3 samples, showing dominant frequencies f = [0.1, 0.2]
-
+julia> easyfft(s)  # fs defaults to 1
+EasyFFT with 51 samples, showing dominant frequencies f = [0.019801980198019802]
 ```
 """
 function easyfft end
@@ -80,6 +76,14 @@ appropriately.
 
 # Examples
 ```jldoctest
+julia> using EasyFFTs
+
+julia> fs = 100;  # 100 samples per second
+
+julia> timestamps = range(0, 1, step = 1/fs);
+
+julia> s = sin.(2π * 2 * timestamps); # sine of frequency = 2 Hz
+
 julia> easymirror(0:3)   # Mirroring the amplitudes
 7-element Vector{Float64}:
  1.5
@@ -124,12 +128,49 @@ function easymirror(input::EasyFFT)
 end
 
 """
-    dominantfrequencies(ef, n=5, t=0.1, window=length(ef)//50)
+    finddomfreq(ef)
+    finddomfreq(ef; n=5, t=0.1, window=length(ef)//50)
 
-Find the `n` or fewer dominant frequencies in `ef`, such that the corresponding magnitude is
-larger than `t` times the maximum, and at least `window` indices away from any larger peaks.
+Find and return a vector containing the indices of the 
+dominant frequency components in `ef`.
+
+# Keyword arguments
+- `n`: The maximal of dominant peaks to find. Defaults to `5`
+- `t`: Minimal magnitude as fraction of maximal magnitude. Defaults to `0.1`
+- `window`: Minimal difference in index between any larger peak. Defaults to `length(ef)//50`
+
+See also: [`domfreq`](@ref)
 """
-function dominantfrequencies(ef::EasyFFT, n=5, t=0.1, window=length(ef)//50)
+function finddomfreq(ef::EasyFFT; n=5, t=0.1, window=length(ef)//50)
+    absresp = abs.(ef.resp)
+    threshold = sum((1.0-t, t).*extrema(absresp))
+    maxindices = sortperm(absresp; rev=true)
+    peaks = Int64[]
+    for i in maxindices
+        length(peaks) >= n && break
+        absresp[i] < threshold && break
+        any(i-window < p < i+window for p in peaks) && continue
+        push!(peaks, i)
+    end
+    return peaks
+end
+export finddomfreq
+
+"""
+    domfreq(ef)
+    domfreq(ef, n=5, t=0.1, window=length(ef)//50)
+
+Find and return a vector containing the
+dominant frequency components in `ef`.
+
+# Keyword arguments
+- `n`: The maximal of dominant peaks to find. Defaults to `5`
+- `t`: Minimal magnitude as fraction of maximal magnitude. Defaults to `0.1`
+- `window`: Minimal difference in index between any larger peak. Defaults to `length(ef)//50`
+
+See also: [`finddomfreq`](@ref)
+"""
+function domfreq(ef::EasyFFT, n=5, t=0.1, window=length(ef)//50)
     absresp = abs.(ef.resp)
     threshold = sum((1.0-t, t).*extrema(absresp))
     maxindices = sortperm(absresp; rev=true)
@@ -142,5 +183,6 @@ function dominantfrequencies(ef::EasyFFT, n=5, t=0.1, window=length(ef)//50)
     end
     return ef.freq[peaks]
 end
+export domfreq
 
 end #module
