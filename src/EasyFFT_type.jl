@@ -27,7 +27,7 @@ function show(io::IO, ef::EasyFFT)
         hcat(round.(ef.freq[dominant_frequency_indices], sigdigits=5), round.(abs.(ef.resp[dominant_frequency_indices]), sigdigits=5)), 
         header=["Frequency", "Magnitude"]
     )
-    print(io, "EasyFFT with ", length(ef), " samples. Dominant component(s):", table)
+    print(io, "EasyFFT with ", length(ef), " samples.\nDominant component(s):", table)
 end
 
 

@@ -1,7 +1,7 @@
 name = "EasyFFTs"
 uuid = "08be435b-48e7-4090-a646-9e3615ae1968"
 authors = ["KronosTheLate"]
-version = "0.1.1"
+version = "0.2.0"
 
 [deps]
 FFTW = "7a1cc6ca-52ef-59f5-83cd-3a7055c09341"
@@ -11,6 +11,7 @@ Term = "22787eb5-b846-44ae-b979-8e399b8463ab"
 [compat]
 FFTW = "^1"
 RecipesBase = "1"
+Term = "^1"
 julia = "1.6"
 
 [extras]

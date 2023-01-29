@@ -28,9 +28,7 @@ julia> using EasyFFTs
 
 julia> fs = 100;  # sampling frequency
 
-julia> duration = 1;  # signal period
-
-julia> timestamps = range(0, duration, step = 1 / fs);
+julia> timestamps = range(0, 1, step = 1 / fs);  # One second signal duration
 ```
 
 We then make a signal `s` composed of 2 pure sinusoids with frequencies of 5 Hz and 10 Hz, sampled at `timestamps`:
@@ -44,15 +42,19 @@ julia> s = @. A1 * sin(f1 * 2π * timestamps) + A2 * sin(f2 * 2π * timestamps);
 
 Lets new use `easyfft`, and bind the output to `ef`:
 ```julia
-julia>  ef = easyfft(s, fs)
-EasyFFT with 51 samples, showing dominant frequencies f = [9.900990099009901, 4.9504950495049505]
+julia> ef = easyfft(s, fs)
+EasyFFT with 51 samples.
+Dominant component(s):                  
+   Frequency  │  Magnitude   
+╺━━━━━━━━━━━━━┿━━━━━━━━━━━━━╸
+     9.901    │   2.8796     
+╶─────────────┼─────────────╴
+    4.9505    │   1.9997     
 ```
-The output is of the type `EasyFFT`, so to understand the output, we have to understand the type. 
+The output is of the type `EasyFFT`, so to understand the output (bound to `ef`), we have to understand the type. 
 It is not complicated at all. In fact, it essentially acts as a `NamedTuple`. 
 The reason for wrapping the output in a new type is the pretty printing seen above, and 
-automatic plotting.
-
-</--- And just like that, we have have the frequency response! The best part is that the amplitudes and frequencies correspond directly to the sines that make up the signal, no preprocessing needed. Note that the sampling frequency `fs` defaults to `1`, giving a [Nyquist frequency](https://en.wikipedia.org/wiki/Nyquist_frequency) of `0.5`. --->
+automatic plotting. Note that the pretty printing rounds values to 5 significant digits.
 
 ## The `EasyFFT` type
 The type `EasyFFT` contains frequencies and the corresponding (complex) responses.
@@ -128,31 +130,40 @@ For less than 100 datapoints, the plot defaults to a stem plot, which is the mos
 However, stem plots get messy and slow with too many points, which is why the default changes to a line plot if there 
 are 100 datapoints or more. Change the keywords `seriestype` and `markershape` in the call to `plot` to custumize the behaviour.
 
-In the final demonstration, let's get the indices of 5 largest amplitude components, using `partialsortperm` from Julia Base:
+If you want to programically find the dominant frequencies, two functions are provided. 
+`finddomfreq` gives you the indices of the dominant frequencies:
 ```julia
-julia> inds_sorted_by_magnitude = partialsortperm(magnitude(ef), 1:5, rev=true)
-5-element view(::Vector{Int64}, 1:5) with eltype Int64:
+julia> finddomfreq(ef)
+2-element Vector{Int64}:
  11
   6
- 12
- 10
- 13
 ```
 
-We can then visualize the result as frequency => magnitude pairs:
+If you want to index directly into the frequency vector, use `domfreq`:
 ```julia
-julia> ef.freq[inds_sorted_by_magnitude] .=> magnitude(ef)[inds_sorted_by_magnitude]
-5-element Vector{Pair{Float64, Float64}}:
-  9.900990099009901 => 2.8796413948481443
- 4.9504950495049505 => 1.9997385273893282
-  10.89108910891089 => 0.3626753646683912
-  8.910891089108912 => 0.21717288162592593
- 11.881188118811881 => 0.18856450061284216
+julia> domfreq(ef)
+2-element Vector{Float64}:
+ 9.900990099009901
+ 4.9504950495049505
 ```
 
-Note that the 9.9 Hz corresponds to a 2.88 magnitude. If the discrete 
-frequencies lined up perfectly with the actual frequencies, we would get the actual
-magnitude of 3 at 10 Hz. This is almost the case at 5 Hz, where the discrete frequency of 4.95 lines up almost perfectly with the frequency of the second sinusoid.
+Finally, you can get the symmetric spectrum using `easymirror`:
+```julia
+julia> easymirror(ef)
+EasyFFT with 101 samples.
+Dominant component(s):                   
+   Frequency  │  Magnitude   
+╺━━━━━━━━━━━━━┿━━━━━━━━━━━━━╸
+    -9.901    │   1.4398     
+╶─────────────┼─────────────╴
+     9.901    │   1.4398     
+╶─────────────┼─────────────╴
+    -4.9505   │   0.99987    
+╶─────────────┼─────────────╴
+    4.9505    │   0.99987    
+```
+The amplitudes are ajusted correctly, halving the magnitude of 
+all component except for the 0 Hz component.
 
-That wraps up the basic usage, and there really is not much more to it. 
+That wraps up the examples, and there really is not much more to it. 
 Check out the docstrings and/or source code for more detail.

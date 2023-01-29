@@ -35,10 +35,20 @@ julia> timestamps = range(0, 1, step = 1/fs);
 julia> s = sin.(2π * 2 * timestamps); # sine of frequency = 2 Hz
 
 julia> easyfft(s, fs)
-EasyFFT with 51 samples, showing dominant frequencies f = [1.9801980198019802]
+EasyFFT with 51 samples.
+Dominant component(s):       
+   Frequency  │  Magnitude   
+╺━━━━━━━━━━━━━┿━━━━━━━━━━━━━╸
+    1.9802    │   0.98461    
 
-julia> easyfft(s)  # fs defaults to 1
-EasyFFT with 51 samples, showing dominant frequencies f = [0.019801980198019802]
+julia> easyfft(s)  # `fs` defaults to 1
+EasyFFT with 51 samples.
+Dominant component(s):       
+   Frequency  │  Magnitude   
+╺━━━━━━━━━━━━━┿━━━━━━━━━━━━━╸
+   0.019802   │   0.98461    
+              ╵                      
+
 ```
 """
 function easyfft end
@@ -84,31 +94,14 @@ julia> timestamps = range(0, 1, step = 1/fs);
 
 julia> s = sin.(2π * 2 * timestamps); # sine of frequency = 2 Hz
 
-julia> easymirror(0:3)   # Mirroring the amplitudes
-7-element Vector{Float64}:
- 1.5
- 1.0
- 0.5
- 0.0
- 0.5
- 1.0
- 1.5
-
-julia> easymirror(fill(1, 4))   # Not halving the zero frequency component
-7-element Vector{Float64}:
- 0.5
- 0.5
- 0.5
- 1.0
- 0.5
- 0.5
- 0.5
-
-
-julia> ef = EasyFFTs.EasyFFT([0, 0.2, 0.4], [1, 2, 3]);
-
 julia> easymirror(ef)
-EasyFFT with 5 samples, showing dominant frequencies f = [-0.4, 0.4]
+EasyFFT with 101 samples.
+Dominant component(s):              ╷              
+   Frequency  │  Magnitude   
+╺━━━━━━━━━━━━━┿━━━━━━━━━━━━━╸
+    -1.9802   │   0.4923     
+╶─────────────┼─────────────╴
+    1.9802    │   0.4923     
 ```
 """
 function easymirror end
