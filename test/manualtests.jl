@@ -1,19 +1,12 @@
 
 ## Below is quick-and-dirty code for testing by manually running it and inspecting output:
-using Pkg
-pkg"activate --temp"
-pkg"add https://github.com/KronosTheLate/EasyFFTs.jl"
+# using Pkg
+# pkg"activate --temp"
+# pkg"add https://github.com/KronosTheLate/EasyFFTs.jl"
 using EasyFFTs
-using FFTW
+using EasyFFTs
 ##
 
-s = 1:5;
-easyfft(s)
-bla = rfft(s)
-
-irfft(s, 8)
-easyfft(s, f=abs)
-easyfft(s, 1, f=abs)
 
 ##
 nt = (freq=[0, 0.2, 0.4], resp=[1, 2, 3]);
