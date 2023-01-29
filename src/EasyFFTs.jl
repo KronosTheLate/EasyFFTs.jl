@@ -134,6 +134,8 @@ end
 Find and return a vector containing the indices of the 
 dominant frequency components in `ef`.
 
+This function is used internally in the `show` method for `EasyFFT`.
+
 # Keyword arguments
 - `n`: The maximal of dominant peaks to find. Defaults to `5`
 - `t`: Minimal magnitude as fraction of maximal magnitude. Defaults to `0.1`
@@ -161,7 +163,7 @@ export finddomfreq
     domfreq(ef, n=5, t=0.1, window=length(ef)//50)
 
 Find and return a vector containing the
-dominant frequency components in `ef`.
+dominant frequencies in `ef`.
 
 # Keyword arguments
 - `n`: The maximal of dominant peaks to find. Defaults to `5`
