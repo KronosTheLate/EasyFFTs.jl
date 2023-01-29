@@ -2,17 +2,14 @@
 module EasyFFTs
 
 import FFTW
-using RecipesBase
 
-import Base: iterate, getindex, firstindex, lastindex, length, show
+include("EasyFFT_type.jl")
+include("plotting.jl")
 
 """
     easyfft(s)
     easyfft(s, fs)
 
-
-# Keyword arguments
-- `scalebylength::Bool`: determines if the response is scaled by its length. Defaults to `true`.
 
 Compute the Discrete Fourier Transform (DFT) of the
 input vector `s`, scaling by `length(s)` by default.
@@ -21,6 +18,9 @@ and FFTW.fft otherwise.
 
 The output is an EasyFFT object, with fields `freq` and `resp` containing the frequences and
 response respectivly.
+
+# Keyword arguments
+- `scalebylength::Bool`: determines if the response is scaled by its length. Defaults to `true`.
 
 See also [`easymirror`](@ref) to get a symestric spectrum.
 
@@ -47,20 +47,6 @@ EasyFFT with 3 samples, showing dominant frequencies f = [0.1, 0.2]
 """
 function easyfft end
 export easyfft
-
-struct EasyFFT
-    freq::Vector{Float64}
-    resp::Vector{Complex{Float64}}
-end
-
-length(ef::EasyFFT) = length(ef.resp)
-Base.getindex(ef::EasyFFT, i) = getindex((ef.freq, ef.resp), i)
-firstindex(ef::EasyFFT) = 1
-lastindex(ef::EasyFFT) = 2
-
-# Allow (f, r) = easyfft(...)
-Base.iterate(ef::EasyFFT, i=1) = iterate((;freq=ef.freq, resp=ef.resp), i)
-
 
 function easyfft(s::AbstractVector, fs::Real=1.0; scalebylength=true)
     resp = FFTW.fft(s)
@@ -135,55 +121,6 @@ function easymirror(input::EasyFFT)
     resp = easymirror(input.resp)
 
     return EasyFFT(freq, resp)
-end
-
-"""
-    magnitude(ef::EasyFFT)
-
-The absolute values of the response vector.
-
-See also: [`phase`](@ref)
-"""
-magnitude(ef::EasyFFT) = abs.(ef.resp)
-export magnitude
-"""
-    phase(ef::EasyFFT)
-
-The phase of the response vector.
-
-See also: [`magnitude`](@ref)
-"""
-phase(ef::EasyFFT) = angle.(ef.resp)
-export phase
-
-# Plot recipe - so plot(easyfft(y, f)) does the right thing
-@recipe function f(ef::EasyFFTs.EasyFFT)
-    layout := (2, 1)
-    link := :x
-    if length(ef.freq) ≥ 100
-        nothing # because stem plots are heavy/slow when having many points
-    else
-        seriestype --> :stem
-        markershape --> :circle
-    end
-    @series begin
-        yguide := "Magnitude"
-        subplot := 1
-        label := nothing
-        ef.freq, magnitude(ef)
-    end
-    @series begin
-        xguide := "Frequency"
-        yguide := "Phase"
-        subplot := 2
-        label := nothing
-        ef.freq, phase(ef)
-    end
-end
-
-function show(io::IO, ef::EasyFFT)
-    dominant = dominantfrequencies(ef)
-    print(io, "EasyFFT with $(length(ef)) samples, showing dominant frequencies f = $(dominant)")
 end
 
 """

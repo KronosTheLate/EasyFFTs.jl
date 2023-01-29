@@ -1,55 +1,34 @@
-
-## Below is quick-and-dirty code for testing by manually running it and inspecting output:
-# using Pkg
-# pkg"activate --temp"
-# pkg"add https://github.com/KronosTheLate/EasyFFTs.jl"
 using EasyFFTs
+
+fs = 100;
+duration = 1;
+timestamps = range(0, duration, step=1 / fs);
+f1 = 5 ; A1 = 2;
+f2 = 10; A2 = 3;
+s = @. A1 * sin(f1 * 2π * timestamps) + A2 * sin(f2 * 2π * timestamps);
+
+ef = easyfft(s, fs)
+
+ef.freq
+ef.resp
+
+frequencies, response = easyfft(s, fs);
+
+frequencies == ef.freq == ef[1]
+response == ef.resp == ef[2]
+
+ef[1]
+ef[2]
+ef[begin]
+a, b = ef
+
 ##
+using Plots
+
+plot(ef)
 
 
-##
-nt = (freq=[0, 0.2, 0.4], resp=[1, 2, 3]);
-easymirror(nt)
-##
-
-using EasyFFTs
-using UnicodePlots
-let
-    fs = 1000
-    duration = 1
-    timestamps = range(0, duration, step=1 / fs)
-
-    f = 5
-    A = 2
-    s = @. A * sin(f * 2π * timestamps)
-
-    plt1 = scatterplot(timestamps, s)
-
-    s_fft = easyfft(s, fs)
-    plt2 = scatterplot(s_fft.freq, s_fft.resp .|> abs)
-    display(plt1)
-    display(plt2)
-end
-
-let
-    fs = 1000
-    duration = 1
-    timestamps = range(0, duration, step=1 / fs)
-
-    f = 50
-    A = 2
-    s1 = @. A * sin(f * 2π * timestamps)
-    s2 = @. 1 * sin(2f * 2π * timestamps)
-    s = s1 .+ s2
-    plt1 = scatterplot(timestamps, s, axis=(title="Signal",))
-
-    s_fft = easyfft(s, fs)
-    plt2 = scatterplot(s_fft.freq, s_fft.resp .|> abs)
-    display(plt1)
-    display(plt2)
-end
-
-##? Internal testing
+##? Makie
 using WGLMakie
 
 let
