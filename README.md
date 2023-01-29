@@ -95,7 +95,7 @@ julia> ef.resp == response
 true
 ```
 
-The third and final way of accessing the frequencies and response indexing:
+The third and final way of accessing the frequencies and response is indexing:
 ```julia
 julia> ef.freq == frequencies == ef[1]
 true
