@@ -4,7 +4,6 @@
 # pkg"activate --temp"
 # pkg"add https://github.com/KronosTheLate/EasyFFTs.jl"
 using EasyFFTs
-using EasyFFTs
 ##
 
 
