@@ -11,7 +11,7 @@ Are you sick and tired of always doing the same preprocessing before you can vis
 This function offers four main benefits to using the FFTW functions directly:
 - The output is scaled by default, making the absolute value of the response 
 correspond directly to the amplitude of the sinusoids that make up the signal.
-- Simple and short syntax for getting the associated frequencies
+- Simple and short syntax for getting the associated frequencies from sample frequency.
 - Frequencies and response are sorted by increasing frequency (if you have ever used `fftshift` you know what I am talking about)
 - `rfft` is automatically called for real input signals, avoiding 
 the common mistake of always using `fft`. This makes it so that half of the symmetric 
@@ -40,7 +40,7 @@ julia> f2 = 10; A2 = 3;
 julia> s = @. A1 * sin(f1 * 2π * timestamps) + A2 * sin(f2 * 2π * timestamps);
 ```
 
-Lets new use `easyfft`, and bind the output to `ef`:
+Lets now use `easyfft`, and bind the output to `ef`:
 ```julia
 julia> ef = easyfft(s, fs)
 EasyFFT with 51 samples.
