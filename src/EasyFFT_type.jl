@@ -23,7 +23,7 @@ Base.iterate(ef::EasyFFT, i=1) = iterate((;freq=ef.freq, resp=ef.resp), i)
 
 function show(io::IO, ef::EasyFFT)
     dominant_frequency_indices = finddomfreq(ef)
-    table = Table(
+    table = Term.Table(
         hcat(round.(ef.freq[dominant_frequency_indices], sigdigits=5), round.(abs.(ef.resp[dominant_frequency_indices]), sigdigits=5)), 
         header=["Frequency", "Magnitude"]
     )
