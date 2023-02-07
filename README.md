@@ -120,7 +120,7 @@ true
 ```
 
 ## Plotting
-Because the returned value is of a custom type, automatic plot recipes can be defined. This has beed done for [Plots.jl](https://github.com/JuliaPlots/Plots.jl):
+Because the returned value is of a custom type, automatic plot recipes can be defined. This has been done for [Plots.jl](https://github.com/JuliaPlots/Plots.jl):
 ```julia
 using Plots
 plot(ef)
