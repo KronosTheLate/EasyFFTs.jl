@@ -1,4 +1,7 @@
+using Pkg
+Pkg.activate(joinpath(homedir(), ".julia", "environments", "v1.8"))
 using EasyFFTs
+Pkg.status("EasyFFTs")
 
 fs = 100;
 duration = 1;
@@ -9,24 +12,21 @@ s = @. A1 * sin(f1 * 2π * timestamps) + A2 * sin(f2 * 2π * timestamps);
 
 ef = easyfft(s, fs)
 
-ef.freq
-ef.resp
 
-frequencies, response = easyfft(s, fs);
+Pkg.offline(true)
+try 
+    using MakieCore
+catch e
+    Pkg.add("MakieCore")
+    using MakieCore
+end
 
-frequencies == ef.freq == ef[1]
-response == ef.resp == ef[2]
+using GLMakie
 
-ef[1]
-ef[2]
-ef[begin]
-a, b = ef
-
-fs = 100;  # 100 samples per second
-timestamps = range(0, 1, step = 1/fs);
-s = sin.(2pi * 2 * timestamps); # sine of frequency = 2 Hz
-easyfft(s, fs)
-
+Makie.convert_arguments(P::MakieCore.PointBased, ef::EasyFFTs.EasyFFT) = (decompose(Point2f, ef.freq), decompose(Point2f, magnitude(ef)))
+Makie.convert_arguments(P::MakieCore.PointBased, ef::EasyFFTs.EasyFFT) = (ef.freq, magnitude(ef))
+plottype(::EasyFFTs.EasyFFT) = Stem
+plot(ef)
 ##
 using Plots
 
