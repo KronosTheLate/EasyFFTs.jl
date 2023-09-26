@@ -67,6 +67,7 @@ end
 
 function easyfft(s::AbstractVector{<:Real}, fs::Real=1.0; scalebylength=true)
     resp = FFTW.rfft(s)
+    resp[1] /= 2
     if scalebylength
         resp ./= length(resp)
     end
