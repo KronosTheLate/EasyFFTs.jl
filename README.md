@@ -42,6 +42,7 @@ julia> f2 = 10; A2 = 3;
 julia> s = @. A1 * sin(f1 * 2π * timestamps) + A2 * sin(f2 * 2π * timestamps);
 ```
 
+## How to use `easyfft`
 Lets now use `easyfft`, and bind the output to `ef`:
 ```julia
 julia> ef = easyfft(s, fs)
@@ -106,6 +107,7 @@ julia> ef.resp == response == ef[2]
 true
 ```
 
+## Convenience functions
 Convenience functions are defined to extract the magnitude and phase of the response:
 ```julia
 julia> magnitude(ef) == abs.(ef.resp)
@@ -121,19 +123,19 @@ julia> phased(ef) == rad2deg.(phase(ef))
 true
 ```
 
-## Plotting
-Because the returned value is of a custom type, automatic plot recipes can be defined. This has been done for [Plots.jl](https://github.com/JuliaPlots/Plots.jl):
-```julia
-using Plots
-plot(ef)
-```
-![Visualization of FFT](assets/s_fft.png)  
-For less than 100 datapoints, the plot defaults to a stem plot, which is the most appropriate for showing discrete quantities. 
-However, stem plots get messy and slow with too many points, which is why the default changes to a line plot if there 
-are 100 datapoints or more. Change the keywords `seriestype` and `markershape` in the call to `plot` to custumize the behaviour.
+We saw that objects of the type `EasyFFT` are displayed 
+as a table of the dominant frequencies. The functions used 
+to find the dominant values are exported. 
 
-If you want to programically find the dominant frequencies, two functions are provided. 
-`finddomfreq` gives you the indices of the dominant frequencies:
+We can get the dominant frequencies like so:
+```julia
+julia> domfreq(ef)
+2-element Vector{Float64}:
+ 9.900990099009901
+ 4.9504950495049505
+```
+
+And their indices like so:
 ```julia
 julia> finddomfreq(ef)
 2-element Vector{Int64}:
@@ -141,12 +143,14 @@ julia> finddomfreq(ef)
   6
 ```
 
-If you want to index directly into the frequency vector, use `domfreq`:
+Sometimes we want to know the response at a specific frequency. This 
+functionality is provided by the `response_at` function:
 ```julia
-julia> domfreq(ef)
-2-element Vector{Float64}:
- 9.900990099009901
- 4.9504950495049505
+julia> response_at(ef, 5)
+(freq = 4.9504950495049505, resp = 0.3097558587965989 - 1.9756025627302725im)
+
+julia> response_at(ef, [5, 10])
+(freq = [4.9504950495049505, 9.900990099009901], resp = ComplexF64[0.3097558587965989 - 1.9756025627302725im, 0.881335139504854 - 2.741456352889268im])
 ```
 
 Finally, you can get the symmetric spectrum using `easymirror`:
@@ -164,8 +168,19 @@ Dominant component(s):
 ╶─────────────┼─────────────╴
     4.9505    │   0.99987    
 ```
-The amplitudes are ajusted correctly, halving the magnitude of 
+The amplitudes are adjusted correctly, halving the magnitude of 
 all component except for the 0 Hz component.
 
-That wraps up the examples, and there really is not much more to it. 
-Check out the docstrings and/or source code for more detail.
+That wraps up the examples for the functions defined in `EasyFFTs`. Each function has a docstring with a lot more detail about the method signatures and arguments, so check that out if if you have questions. If anything is still unclear, please [open up an issue](https://github.com/KronosTheLate/EasyFFTs.jl/issues/new).
+
+
+## Plotting
+Because the returned value is of a custom type, automatic plot recipes can be defined. This has been done for [Plots.jl](https://github.com/JuliaPlots/Plots.jl):
+```julia
+using Plots
+plot(ef)
+```
+![Visualization of FFT](assets/s_fft.png)  
+For less than 100 datapoints, the plot defaults to a stem plot, which is the most appropriate for showing discrete quantities. 
+However, stem plots get messy and slow with too many points, which is why the default changes to a line plot if there 
+are 100 datapoints or more. Change the keywords `seriestype` and `markershape` in the call to `plot` to customize the behavior.
