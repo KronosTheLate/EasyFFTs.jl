@@ -1,7 +1,8 @@
 # pkg"activate /home/dennishb/GeekyStuff/Julia/Packages/EasyFFTs"
 module EasyFFTs
 
-import FFTW
+using Reexport
+@reexport using FFTW
 
 include("EasyFFT_type.jl")
 include("plotting.jl")
@@ -16,13 +17,15 @@ input vector `s`, scaling by `1/length(s)` by default.
 This function uses FFTW.rfft if `s` has real elements,
 and FFTW.fft otherwise.
 
+Note that if `s` has real elements, the one-side spectrum 
+is returned. This means that the amplitude of the frequencies 
+is doubled, excluding the frequency=0 component. To get the full symmetric spectrum for real signals, use [`easymirror`](@ref), or change the element type of the signal by something like `easyfft(signal.|>ComplexF64)`.
+
 The output is an `EasyFFT` object, with fields `freq` and `resp` containing the frequences and
 response respectivly.
 
 # Keyword arguments
 - `scalebylength::Bool`: determines if the response is scaled by its length. Defaults to `true`.
-
-See also [`easymirror`](@ref) to get the full symmetric spectrum of real signals.
 
 # Examples
 ```jldoctest

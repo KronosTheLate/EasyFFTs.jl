@@ -18,8 +18,10 @@ the common mistake of always using `fft`. This makes it so that half of the symm
 spectrum is not computed, and not returned. This reduces computation and allocations, without loss of information. 
 If you want both sides of the spectrum, use `easymirror`, with usage demonstrated in the docstring.
 
+In case you also want to compute the "as the mathematicians define it" [Discrete Fourier Transform](https://en.wikipedia.org/wiki/Discrete_Fourier_transform), this package reexports everything exported from FFTW, so that `using EasyFFTs; fft(rand(100))` is equivalent to `using FFTW; fft(rand(100))`. The only difference between `using EasyFFTs` and `using FFTW` is therefore that EasyFFTs exports a few extra functions that mainly facilitate visualization of the spectrum.
+
 # Examples
-It is much easier to explain by example, so let's show some examples of how to use this package.
+It is easier to explain by example, so view the examples below as a light introduction to all function defined in `EasyFFTs`, and how to use them.
 
 ## Setup
 First, we need something to analyze. Let's define some sample-timestamps:
