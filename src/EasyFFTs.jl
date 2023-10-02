@@ -61,7 +61,7 @@ export easyfft
 function easyfft(s::AbstractVector, fs::Real=1.0; scalebylength=true)
     resp = FFTW.fft(s)
     if scalebylength
-        resp ./= length(resp)
+        resp ./= length(s)
     end
 
     freq = FFTW.fftshift(FFTW.fftfreq(length(s), fs))
@@ -72,8 +72,9 @@ end
 function easyfft(s::AbstractVector{<:Real}, fs::Real=1.0; scalebylength=true)
     resp = FFTW.rfft(s)
     resp[1] /= 2
+    resp .*= 2
     if scalebylength
-        resp ./= length(resp)
+        resp ./= length(s)
     end
 
     freq = FFTW.rfftfreq(length(s), fs)
