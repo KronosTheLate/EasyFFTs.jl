@@ -14,7 +14,7 @@ ef = easyfft(s, fs)
 
 
 Pkg.offline(true)
-try 
+try
     using MakieCore
 catch e
     Pkg.add("MakieCore")
