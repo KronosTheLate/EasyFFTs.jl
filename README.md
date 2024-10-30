@@ -123,11 +123,27 @@ julia> phased(ef) == rad2deg.(phase(ef))
 true
 ```
 
+It is possible to get the full symmetric spectrum for real signals using `easymirror`. 
+This function adjusts the amplitudes correctly, halving all but the 0 Hz component:
+```julia
+julia> easymirror(ef)
+EasyFFT with 101 samples.
+Dominant component(s):                   
+   Frequency  │  Magnitude   
+╺━━━━━━━━━━━━━┿━━━━━━━━━━━━━╸
+    -9.901    │   1.4398     
+╶─────────────┼─────────────╴
+     9.901    │   1.4398     
+╶─────────────┼─────────────╴
+    -4.9505   │   0.99987    
+╶─────────────┼─────────────╴
+    4.9505    │   0.99987    
+```
+
 We saw that objects of the type `EasyFFT` are displayed 
 as a table of the dominant frequencies. The functions used 
-to find the dominant values are exported. 
-
-We can get the dominant frequencies like so:
+to find the dominant values are exported. We can get the 
+dominant frequencies like so:
 ```julia
 julia> domfreq(ef)
 2-element Vector{Float64}:
@@ -143,33 +159,44 @@ julia> finddomfreq(ef)
   6
 ```
 
-Sometimes we want to know the response at a specific frequency. This 
-functionality is provided by the `response_at` function:
+Sometimes we want to know the response at a specific frequency. No interpolation 
+schemes are built-in, but the `response_at` function will find the closest value 
+in the discrete frequency spectrum. For example, we can look for specific frequencies:
 ```julia
-julia> response_at(ef, 5)
-(freq = 4.9504950495049505, resp = 0.3097558587965989 - 1.9756025627302725im)
+julia> response_at(ef, 10)
+(freq = 9.900990099009901, resp = 0.9128807989956222 - 2.839581396065958im)
 
-julia> response_at(ef, [5, 10])
-(freq = [4.9504950495049505, 9.900990099009901], resp = ComplexF64[0.3097558587965989 - 1.9756025627302725im, 0.881335139504854 - 2.741456352889268im])
+julia> response_at(ef, [10, 5])
+(freq = [9.900990099009901, 4.9504950495049505], resp = ComplexF64[0.9128807989956222 - 2.839581396065958im, 0.3090992872509236 - 1.9714149924505981im])
 ```
 
-Finally, you can get the symmetric spectrum using `easymirror`:
+One can chain `response_at` with `domfreq` to get the amplitude of the dominant freuqencies:
 ```julia
-julia> easymirror(ef)
-EasyFFT with 101 samples.
-Dominant component(s):                   
-   Frequency  │  Magnitude   
+julia> response_at(ef, domfreq(ef))     # For this use case, the optional arguments to `domfreq` might be very useful. See the docstring for more detail.
+(freq = [9.900990099009901, 4.9504950495049505], resp = ComplexF64[0.9128807989956222 - 2.839581396065958im, 0.3090992872509236 - 1.9714149924505981im])
+
+julia> # Combining some non-trivial julia functions and syntax for nice printing of this named tuple:
+
+julia> [f=>abs(r) for (f, r) in zip(response_at(ef, domfreq(ef))...)]
+2-element Vector{Pair{Float64, Float64}}:
+  9.900990099009901 => 2.9827125000674775
+ 4.9504950495049505 => 1.9954997975038786
+```
+
+With the conveniences related to the specifics of this package covered, it it time for a final convenience more related to the theory begind the DFT. The `easyfft` function can take a windowing function as the second argument. It is quite common to add a windowing function to reduce [spectral leakage](https://en.wikipedia.org/wiki/Spectral_leakage). For example, adding the `hanning` window from [`DSP.jl`](https://github.com/JuliaDSP/DSP.jl) makes the magnitudes of the FFT even closer to the true magnitudes:
+
+```julia
+julia> using DSP
+
+julia> ef = easyfft(s, hanning, fs)
+EasyFFT with 51 samples.
+Dominant component(s):
+   Frequency  │  Magnitude
 ╺━━━━━━━━━━━━━┿━━━━━━━━━━━━━╸
-    -9.901    │   1.4398     
+     9.901    │   2.9827
 ╶─────────────┼─────────────╴
-     9.901    │   1.4398     
-╶─────────────┼─────────────╴
-    -4.9505   │   0.99987    
-╶─────────────┼─────────────╴
-    4.9505    │   0.99987    
+    4.9505    │   1.9955
 ```
-The amplitudes are adjusted correctly, halving the magnitude of 
-all component except for the 0 Hz component.
 
 That wraps up the examples for the functions defined in `EasyFFTs`. Each function has a docstring with a lot more detail about the method signatures and arguments, so check that out if if you have questions. If anything is still unclear, please [open up an issue](https://github.com/KronosTheLate/EasyFFTs.jl/issues/new).
 
