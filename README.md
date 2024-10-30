@@ -153,7 +153,7 @@ julia> response_at(ef, [5, 10])
 (freq = [4.9504950495049505, 9.900990099009901], resp = ComplexF64[0.3097558587965989 - 1.9756025627302725im, 0.881335139504854 - 2.741456352889268im])
 ```
 
-Finally, you can get the symmetric spectrum using `easymirror`:
+Finally, you can get the symmetric spectrum for real signals using `easymirror`:
 ```julia
 julia> easymirror(ef)
 EasyFFT with 101 samples.
