@@ -171,6 +171,20 @@ Dominant component(s):
 The amplitudes are adjusted correctly, halving the magnitude of 
 all component except for the 0 Hz component.
 
+With the conveniences related to the specifics of this package covered, it it time for a final convenience more related to the theory begind the DFT. The `easyfft` function can take a windowing function as the second argument. It is quite common to add a windowing function to reduce [spectral leakage](https://en.wikipedia.org/wiki/Spectral_leakage). For example, adding the `hanning` window from [`DSP.jl`](https://github.com/JuliaDSP/DSP.jl) makes the magnitudes of the FFT even closer to the true magnitudes:
+```
+julia> using DSP
+
+julia> ef = easyfft(s, hanning, fs)
+EasyFFT with 51 samples.
+Dominant component(s):
+   Frequency  │  Magnitude
+╺━━━━━━━━━━━━━┿━━━━━━━━━━━━━╸
+     9.901    │   2.9827
+╶─────────────┼─────────────╴
+    4.9505    │   1.9955
+```
+
 That wraps up the examples for the functions defined in `EasyFFTs`. Each function has a docstring with a lot more detail about the method signatures and arguments, so check that out if if you have questions. If anything is still unclear, please [open up an issue](https://github.com/KronosTheLate/EasyFFTs.jl/issues/new).
 
 
