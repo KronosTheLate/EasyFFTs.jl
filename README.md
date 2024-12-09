@@ -16,7 +16,7 @@ correspond directly to the amplitude of the sinusoids that make up the signal.
 - `rfft` is automatically called for real input signals, avoiding 
 the common mistake of always using `fft`. This makes it so that half of the symmetric 
 spectrum is not computed, and not returned. This reduces computation and allocations, without loss of information. 
-If you want both sides of the spectrum, use `easymirror`, with usage demonstrated in the docstring.
+If you want both sides of the spectrum for real input signals, use `easymirror`; usage is demonstrated in the docstring.
 
 In case you also want to compute the "as the mathematicians define it" [Discrete Fourier Transform](https://en.wikipedia.org/wiki/Discrete_Fourier_transform), this package reexports everything exported from FFTW, so that `using EasyFFTs; fft(rand(100))` is equivalent to `using FFTW; fft(rand(100))`. The only difference between `using EasyFFTs` and `using FFTW` is therefore that EasyFFTs exports a few extra functions that mainly facilitate visualization of the spectrum.
 
